@@ -25,7 +25,7 @@ public class Board	{
 	private int [] previousHeights;
 	private boolean[][] previousGrid;
 	private boolean[][] grid;
-	private boolean DEBUG = true;
+	private boolean DEBUG = false;
 	private ArrayList<Integer> clearedRowArrayList;
 	boolean committed;
 	
@@ -92,17 +92,17 @@ public class Board	{
 					
 					if (grid[j][i]) {
 						tempWidths[i]=tempWidths[i] + 1;
-						
+						tempHeights[j]=((i+1)>tempHeights[j])?i+1:tempHeights[j];
 					}
 					
 				}	
 			}
 			//check heights
-			/*for (int i = 0; i < tempHeights.length; i++) {
+			for (int i = 0; i < tempHeights.length; i++) {
 				if (tempHeights[i]!=heights[i]) {
 					System.out.printf(" !!!!!!! heights off %s should be %s at %s \n", heights[i], tempHeights[i], i);
 				}
-			}*/
+			}
 			//check widths
 			for (int i = 0; i < tempWidths.length; i++) {
 				if (tempWidths[i]!=widths[i]) {
@@ -147,8 +147,8 @@ public class Board	{
 	public int dropHeight(Piece piece, int x) {
 		int theMax =0;
 		for (int i = 0; i < piece.getSkirt().length; i++) {
-			if (theMax<heights[x+i]) {
-				theMax=heights[x+i];
+			if (theMax<(heights[x+i]-piece.getSkirt()[i])) {
+				theMax=heights[x+i]-piece.getSkirt()[i];
 			}
 		}
 		return theMax; // YOUR CODE HERE
@@ -368,20 +368,39 @@ public class Board	{
 				}
 			}	
 		}
+		for (int i = 0; i < (maxHeight+1); i++) {
 		
-		if(((widths[0]==0) && (widths[1]>0))||((widths[0]==0) && (widths[2]>0))){
-			// weNeedToPropagateMore
-			for (int i_y = Collections.min(clearedRowArrayList); i_y <= maxHeight+1; i_y++) {
-				//TODO now propagate the cleared row hole upwards aka bring the rows down aka gravity
-				for (int i_x = 0; i_x < width; i_x++) {
-					
-						grid[i_x][i_y]=grid[i_x][i_y+1];
+			if((widths[i]==0) && (widths[i+1]>0)){
+				// weNeedToPropagateMore
+				for (int i_y = Collections.min(clearedRowArrayList); i_y <= maxHeight+1; i_y++) {
+					//TODO now propagate the cleared row hole upwards aka bring the rows down aka gravity
+					for (int i_x = 0; i_x < width; i_x++) {
 						
-						if (DEBUG) {
-							System.out.printf("Changed heights %s to %s at %s \n", i_y+1,i_y,i_x);
+							grid[i_x][i_y]=grid[i_x][i_y+1];
+							
+							if (DEBUG) {
+								System.out.printf("Changed heights %s to %s at %s \n", i_y+1,i_y,i_x);
+							}
 						}
-					}
+				}
 			}
+			
+		}
+		
+		for (int i = 0; i < width; i++) {
+			heights[i]=0;
+			
+		}
+		for (int i = 0; i < height; i++) {
+			
+			
+			widths[i]=0;
+			for (int j = 0; j < width; j++) {
+				if (grid[j][i]) {
+					widths[i]=widths[i] + 1;
+					heights[j]=((i+1)>heights[j])?i+1:heights[j];
+				}
+			}	
 		}
 		
 		int clearedCount = clearedRowArrayList.size();

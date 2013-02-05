@@ -435,7 +435,6 @@ public class JTetris extends JComponent {
 			repaint();
 		}
 		
-
 		boolean failed = (result >= Board.PLACE_OUT_BOUNDS);
 		
 		// if it didn't work, put it back the way it was
