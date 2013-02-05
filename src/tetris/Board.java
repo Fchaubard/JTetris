@@ -25,7 +25,7 @@ public class Board	{
 	private int [] previousHeights;
 	private boolean[][] previousGrid;
 	private boolean[][] grid;
-	private boolean DEBUG = false;
+	private boolean DEBUG = true;
 	private ArrayList<Integer> clearedRowArrayList;
 	boolean committed;
 	
@@ -330,75 +330,47 @@ public class Board	{
 			}
 			widths[row]=0;
 		
-			// go over the entire grid and bring 
 			
-			for (int i_y = Collections.min(clearedRowArrayList); i_y <= maxHeight+1; i_y++) {
-				//TODO now propagate the cleared row hole upwards aka bring the rows down aka gravity
-				for (int i_x = 0; i_x < width; i_x++) {
-					
-						grid[i_x][i_y]=grid[i_x][i_y+1];
-						//grid[i_x][i_y+1]=false;
-						
-						if (DEBUG) {
-							System.out.printf("Changed heights %s to %s at %s \n", i_y+1,i_y,i_x);
-						}
-					
-				}
-				// propagate the widths
-				//widths[i_y] = widths[i_y+1];
-				
+		}
+		// rebuild the grid by compressing the cleared rows
+		int compress = 0;
+		for (int i_y = 0; i_y < (height-clearedRowArrayList.size()); i_y++) {
+			if(clearedRowArrayList.contains(i_y+compress) &&clearedRowArrayList.contains(i_y+compress+1) &&clearedRowArrayList.contains(i_y+compress+2)&&clearedRowArrayList.contains(i_y+compress+3)   ){
+				//tetris!!!!!!!
+				compress+=4;
+			}// 3 cleared rows in a row
+			else if(clearedRowArrayList.contains(i_y+compress) &&clearedRowArrayList.contains(i_y+compress+1) &&clearedRowArrayList.contains(i_y+compress+2)  ){
+				compress+=3;
+			}	// 2 cleared rows in a row		
+			else if(clearedRowArrayList.contains(i_y+compress) &&clearedRowArrayList.contains(i_y+compress+1)){
+					compress+=2;
+			} // ya you know why...
+			else if(clearedRowArrayList.contains(i_y+compress) ){
+				compress+=1;
 			}
-			if (DEBUG) {
-				System.out.printf("\n");
-			}
-			
-		}
-		maxHeight = maxHeight-clearedRowArrayList.size();
-		
-		for (int i = 0; i < width; i++) {
-			heights[i]-=clearedRowArrayList.size();
-			
-		}
-		// recalculate the widths.. this is just easier to do.. only happens when rows are cleared
-		for (int i = 0; i < height; i++) {
-			widths[i]=0;
-			for (int j = 0; j < width; j++) {
-				if (grid[j][i]) {
-					widths[i]=widths[i] + 1;
-				}
-			}	
-		}
-		for (int i = 0; i < (maxHeight+1); i++) {
-		
-			if((widths[i]==0) && (widths[i+1]>0)){
-				// weNeedToPropagateMore
-				for (int i_y = Collections.min(clearedRowArrayList); i_y <= maxHeight+1; i_y++) {
-					//TODO now propagate the cleared row hole upwards aka bring the rows down aka gravity
-					for (int i_x = 0; i_x < width; i_x++) {
-						
-							grid[i_x][i_y]=grid[i_x][i_y+1];
-							
-							if (DEBUG) {
-								System.out.printf("Changed heights %s to %s at %s \n", i_y+1,i_y,i_x);
-							}
-						}
-				}
+			for (int i_x = 0; i_x < width; i_x++) {
+				grid[i_x][i_y] = grid[i_x][i_y+compress];
 			}
 			
 		}
-		
+		// zero out maxHeight and heights
+		maxHeight=0;
 		for (int i = 0; i < width; i++) {
 			heights[i]=0;
-			
 		}
+		//repopulate height and maxHeight.. zero out widths and repopulate widths.
 		for (int i = 0; i < height; i++) {
-			
-			
 			widths[i]=0;
 			for (int j = 0; j < width; j++) {
 				if (grid[j][i]) {
 					widths[i]=widths[i] + 1;
 					heights[j]=((i+1)>heights[j])?i+1:heights[j];
+					if(maxHeight<(heights[j])){
+						maxHeight = heights[j];
+						if (DEBUG) {
+							System.out.printf("height[%s]:%s ",j,heights[j]);
+						}
+					}
 				}
 			}	
 		}
