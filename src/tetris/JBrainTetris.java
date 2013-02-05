@@ -1,10 +1,14 @@
 package tetris;
 
+import java.awt.Dimension;
+import java.util.ArrayList;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.UIManager;
 
 public class JBrainTetris extends JTetris {
@@ -16,6 +20,9 @@ public class JBrainTetris extends JTetris {
 	private Brain.Move move;
 	private int numberOfRotationsNeeded;
 	private int translationNeeded;
+	private JPanel little;
+	private JLabel statusJLabel;
+	private JSlider adversary;
 	
 	public JBrainTetris(int pixels) {
 		super(pixels);
@@ -86,12 +93,49 @@ public class JBrainTetris extends JTetris {
 
 
 	@Override
+	public Piece pickNextPiece() {
+		// TODO Auto-generated method stub
+		int adversaryScore = (int) (100 * random.nextDouble());
+		Piece worstPiece = super.pickNextPiece();
+		if (adversaryScore<adversary.getValue()) {
+			statusJLabel.setText("*ok*");
+			
+			double worstHighestScore = 0.0;
+			for (Piece isItTheWorstPiece : pieces) {
+				Brain.Move move = brain.bestMove(board, isItTheWorstPiece, board.getHeight()-4, null);
+				if(move==null){
+					return worstPiece;
+				}
+				if (move.score > worstHighestScore ) {
+					// yes it is the worst piece
+					worstPiece = isItTheWorstPiece;
+					worstHighestScore = move.score;
+				}
+			}
+			return worstPiece;
+		}
+		statusJLabel.setText("ok");
+		return worstPiece;
+	}
+
+
+	@Override
 	public JComponent createControlPanel() {
 		// TODO Auto-generated method stub
 		panel = super.createControlPanel();
 		panel.add(new JLabel("Brain:"));
 		brainMode = new JCheckBox("Brain active"); 
 		panel.add(brainMode);
+		
+		little = new JPanel();
+		little.add(new JLabel("Adversary:"));
+		adversary = new JSlider(0, 100, 0); // min, max, current 
+		adversary.setPreferredSize(new Dimension(100,15)); 
+		little.add(adversary);
+		
+		statusJLabel= new JLabel("ok");
+		little.add(statusJLabel);
+		panel.add(little);
 		
 		return panel;
 	}
